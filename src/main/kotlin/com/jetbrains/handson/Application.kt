@@ -6,11 +6,11 @@ import freemarker.cache.ClassTemplateLoader
 import freemarker.core.HTMLOutputFormat
 import io.ktor.application.*
 import io.ktor.freemarker.*
-import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.*
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
@@ -22,18 +22,34 @@ fun Application.module() {
         outputFormat = HTMLOutputFormat.INSTANCE
     }
     routing {
-        get("/") {
-            call.respond(FreeMarkerContent("index.ftl", mapOf("entries" to blogEntries)))
-        }
         static("/static") {
             resources("files")
         }
+        get("/") {
+            call.respond(FreeMarkerContent("index.ftl", mapOf("entries" to blogEntries)))
+        }
+        get("/entry/{id}") {
+            val id = call.parameters.getOrFail<Int>("id").toInt()
+            call.respond(FreeMarkerContent("view_entry.ftl", mapOf("entry" to blogEntries.find { it.id == id })))
+        }
+        get("/new") {
+            call.respond(FreeMarkerContent("new_entry.ftl", model = null))
+        }
         post("/submit") {
             val params = call.receiveParameters()
-            val headline = params["headline"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-            val body = params["body"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-            val newEntry = BlogEntry(headline, body)
-            blogEntries.add(0, newEntry)
+            val action = params.getOrFail("action")
+            when (action) {
+                "delete" -> {
+                    val id = params.getOrFail("id")
+                    blogEntries.removeIf { it.id.toString() == id }
+                }
+                "add" -> {
+                    val headline = params.getOrFail("headline")
+                    val body = params.getOrFail("body")
+                    val newEntry = BlogEntry.newEntry(headline, body)
+                    blogEntries.add(0, newEntry)
+                }
+            }
             call.respondRedirect("/")
         }
     }

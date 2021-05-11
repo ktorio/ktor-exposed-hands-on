@@ -1,30 +1,13 @@
-<#-- @ftlvariable name="entries" type="kotlin.collections.List<com.jetbrains.handson.website.BlogEntry>" -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Kotlin Journal</title>
-</head>
-<body style="text-align: center; font-family: sans-serif">
-<img src="/static/ktor.png">
-<h1>Kotlin Ktor Journal </h1>
-<p><i>Powered by Ktor, kotlinx.html & Freemarker!</i></p>
-<hr>
-<#list entries as item>
+<#import "template.ftl" as template />
+
+<#-- @ftlvariable name="entries" type="kotlin.collections.List<com.jetbrains.handson.model.BlogEntry>" -->
+
+<@template.main_layout>
+    <#list entries as item>
+        <@template.view_entry entry=item standalone=false></@template.view_entry>
+        <hr>
+    </#list>
     <div>
-        <h3>${item.headline}</h3>
-        <p>${item.body}</p>
+        <a href="/new"><h4>[add a new journal entry]</h4></a>
     </div>
-</#list>
-<hr>
-<div>
-    <h3>Add a new journal entry!</h3>
-    <form action="/submit" method="post">
-        <input type="text" name="headline">
-        <br>
-        <textarea name="body"></textarea>
-        <br>
-        <input type="submit">
-    </form>
-</div>
-</body>
-</html>
+</@template.main_layout>
