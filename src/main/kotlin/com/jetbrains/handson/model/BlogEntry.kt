@@ -1,18 +1,13 @@
 package com.jetbrains.handson.model
 
-import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.exposed.sql.Table
 
-class BlogEntry
-private constructor(val id: Int, val headline: String, val body: String) {
-    companion object {
-        private val idCounter = AtomicInteger()
+data class BlogEntry(val id: Int, val headline: String, val body: String)
 
-        fun newEntry(headline: String, body: String) =
-            BlogEntry(idCounter.getAndIncrement(), headline, body)
-    }
+object BlogEntries : Table() {
+    val id = integer("id").autoIncrement()
+    val headline = varchar("headline", 128)
+    val body = varchar("body", 1024)
+
+    override val primaryKey = PrimaryKey(id)
 }
-
-val blogEntries = mutableListOf(BlogEntry.newEntry(
-    "The drive to develop!",
-    "...it's what keeps me going."
-))

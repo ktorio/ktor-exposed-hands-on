@@ -1,7 +1,8 @@
 package com.jetbrains.handson
 
-import com.jetbrains.handson.model.BlogEntry
-import com.jetbrains.handson.model.blogEntries
+import com.jetbrains.handson.dao.DAOFacade
+import com.jetbrains.handson.dao.DAOFacadeImpl
+import com.jetbrains.handson.dao.DatabaseFactory
 import freemarker.cache.ClassTemplateLoader
 import freemarker.core.HTMLOutputFormat
 import io.ktor.application.*
@@ -21,16 +22,20 @@ fun Application.module() {
         templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
         outputFormat = HTMLOutputFormat.INSTANCE
     }
+
+    DatabaseFactory.init()
+    val dao: DAOFacade = DAOFacadeImpl()
+
     routing {
         static("/static") {
             resources("files")
         }
         get("/") {
-            call.respond(FreeMarkerContent("index.ftl", mapOf("entries" to blogEntries)))
+            call.respond(FreeMarkerContent("index.ftl", mapOf("entries" to dao.allBlogEntries())))
         }
         get("/entry/{id}") {
             val id = call.parameters.getOrFail<Int>("id").toInt()
-            call.respond(FreeMarkerContent("view_entry.ftl", mapOf("entry" to blogEntries.find { it.id == id })))
+            call.respond(FreeMarkerContent("view_entry.ftl", mapOf("entry" to dao.blogEntry(id))))
         }
         get("/new") {
             call.respond(FreeMarkerContent("new_entry.ftl", model = null))
@@ -41,13 +46,12 @@ fun Application.module() {
             when (action) {
                 "delete" -> {
                     val id = params.getOrFail("id")
-                    blogEntries.removeIf { it.id.toString() == id }
+                    dao.deleteBlogEntry(id.toInt())
                 }
                 "add" -> {
                     val headline = params.getOrFail("headline")
                     val body = params.getOrFail("body")
-                    val newEntry = BlogEntry.newEntry(headline, body)
-                    blogEntries.add(0, newEntry)
+                    dao.addNewBlogEntry(headline, body)
                 }
             }
             call.respondRedirect("/")
