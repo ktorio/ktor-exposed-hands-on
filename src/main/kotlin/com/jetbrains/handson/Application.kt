@@ -23,7 +23,7 @@ fun Application.module() {
         outputFormat = HTMLOutputFormat.INSTANCE
     }
 
-    DatabaseFactory.init()
+    DatabaseFactory.init(environment.config)
     val dao: DAOFacade = DAOFacadeImpl()
 
     routing {
