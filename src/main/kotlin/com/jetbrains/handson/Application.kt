@@ -1,6 +1,7 @@
 package com.jetbrains.handson
 
 import com.jetbrains.handson.dao.DAOFacade
+import com.jetbrains.handson.dao.DAOFacadeCacheImpl
 import com.jetbrains.handson.dao.DAOFacadeImpl
 import com.jetbrains.handson.dao.DatabaseFactory
 import freemarker.cache.ClassTemplateLoader
@@ -12,6 +13,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import java.io.File
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
@@ -24,7 +26,9 @@ fun Application.module() {
     }
 
     DatabaseFactory.init(environment.config)
-    val dao: DAOFacade = DAOFacadeImpl()
+    val dao: DAOFacade = DAOFacadeCacheImpl(
+        DAOFacadeImpl(),
+        File(environment.config.property("storage.ehcacheFilePath").getString()))
 
     routing {
         static("/static") {

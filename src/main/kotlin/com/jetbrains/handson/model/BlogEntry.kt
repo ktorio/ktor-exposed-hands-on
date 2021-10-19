@@ -1,8 +1,9 @@
 package com.jetbrains.handson.model
 
 import org.jetbrains.exposed.sql.Table
+import java.io.Serializable
 
-data class BlogEntry(val id: Int, val headline: String, val body: String)
+data class BlogEntry(val id: Int, val headline: String, val body: String): Serializable
 
 object BlogEntries : Table() {
     val id = integer("id").autoIncrement()
